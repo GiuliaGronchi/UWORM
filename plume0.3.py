@@ -20,109 +20,110 @@ import numpy as np
 import pandas as pd
 from scipy.interpolate import interp1d
 import matplotlib.pyplot as plt
+import utils 
 
-# # Calculation of reduced gravity
-def reduced_g(params):
-    g1 = 9.8 * (params['rhoa']-params['rho'])/params['rho']
-    return g1
+# # # Calculation of reduced gravity
+# def reduced_g(params):
+#     g1 = 9.8 * (params['rhoa']-params['rho'])/params['rho']
+#     return g1
 
-# # Calculation of projected velocity differences
-def proj_vel(params):
-    ua=params['ua']
-    va=params['va']
-    u=params['u']
-    v=params['v']
-    V0=params['V0']
-    vel = np.array([u,v])
-    a_vel = np.array([ua,va])   
-    proj_vel=np.dot(vel,a_vel)/V0
-    return proj_vel
+# # # Calculation of projected velocity differences
+# def proj_vel(params):
+#     ua=params['ua']
+#     va=params['va']
+#     u=params['u']
+#     v=params['v']
+#     V0=params['V0']
+#     vel = np.array([u,v])
+#     a_vel = np.array([ua,va])   
+#     proj_vel=np.dot(vel,a_vel)/V0
+#     return proj_vel
 
-def vdif(params):
-    vdif=np.abs(params['V0']  - proj_vel(params))  
-    return vdif
+# def vdif(params):
+#     vdif=np.abs(params['V0']  - utils.proj_vel(params))  
+#     return vdif
 
-# # Computation of the shear flux
-def shear_entrain_yapa(params):
-    b=params['b']   
-    h=params['h']  
-    alpha=params['alpha'] 
-    # eq. entrainment following Yapa et al., (1997)                        
-    Qs = 2 * np.pi * b * h * alpha * vdif(params)
-    return Qs
+# # # Computation of the shear flux
+# def shear_entrain_yapa(params):
+#     b=params['b']   
+#     h=params['h']  
+#     alpha=params['alpha'] 
+#     # eq. entrainment following Yapa et al., (1997)                        
+#     Qs = 2 * np.pi * b * h * alpha * utils.vdif(params)
+#     return Qs
 
-# # Computation of the forced flux
-def forced_entrain_yapa(params):
-    ua=params['ua']
-    va=params['va']
-    b=params['b']    
-    phi=params['phi']  
-    theta=params['theta']   
-    bb=params['bb']
-    phib=params['phib']  
-    thetab=params['thetab'] 
-    ds=params['ds']
+# # # Computation of the forced flux
+# def forced_entrain_yapa(params):
+#     ua=params['ua']
+#     va=params['va']
+#     b=params['b']    
+#     phi=params['phi']  
+#     theta=params['theta']   
+#     bb=params['bb']
+#     phib=params['phib']  
+#     thetab=params['thetab'] 
+#     ds=params['ds']
     
-    Qfx = ua * ( np.pi * b * (b-bb)* np.absolute(np.cos(theta)*np.cos(phi)) + \
-                2 * b* ds * np.sqrt(1 - np.cos(theta)**2 * np.cos(phi)**2 ) + \
-                np.pi * b**2 /2 * np.absolute(np.cos(theta)*np.cos(phi)-np.cos(thetab)*np.cos(phib)) )
-    Qfy = va * ( np.pi * b * (b-bb)* np.absolute(np.sin(theta)*np.cos(phi)) + \
-                2 * b* ds * np.sqrt(1 - np.sin(theta)**2 * np.cos(phi)**2 ) + \
-                np.pi * b**2 /2 * np.absolute(np.sin(theta)*np.cos(phi)-np.sin(thetab)*np.cos(phib)) )  
-    Qf= np.sqrt(Qfx**2 + Qfy**2) 
-    return Qf
+#     Qfx = ua * ( np.pi * b * (b-bb)* np.absolute(np.cos(theta)*np.cos(phi)) + \
+#                 2 * b* ds * np.sqrt(1 - np.cos(theta)**2 * np.cos(phi)**2 ) + \
+#                 np.pi * b**2 /2 * np.absolute(np.cos(theta)*np.cos(phi)-np.cos(thetab)*np.cos(phib)) )
+#     Qfy = va * ( np.pi * b * (b-bb)* np.absolute(np.sin(theta)*np.cos(phi)) + \
+#                 2 * b* ds * np.sqrt(1 - np.sin(theta)**2 * np.cos(phi)**2 ) + \
+#                 np.pi * b**2 /2 * np.absolute(np.sin(theta)*np.cos(phi)-np.sin(thetab)*np.cos(phib)) )  
+#     Qf= np.sqrt(Qfx**2 + Qfy**2) 
+#     return Qf
 
-# # Computation of the entrainment coefficient
-def entrain_coeff_yapa(params):
-    b=params['b']   
-    phi=params['phi']    
-    b=params['b']     
-    phi=params['phi']  
-    c3=0.057
-    c4=0.554
-    c5=5
-    E=2   
-    invF1= np.sqrt(reduced_g(params) * b)/(E * vdif(params))
-    alpha= np.sqrt(2) *(c3 + c4 * np.sin(phi) * invF1**2 ) / (1 + c5 * proj_vel(params) / vdif(params))
-    return alpha
+# # # Computation of the entrainment coefficient
+# def entrain_coeff_yapa(params):
+#     b=params['b']   
+#     phi=params['phi']    
+#     b=params['b']     
+#     phi=params['phi']  
+#     c3=0.057
+#     c4=0.554
+#     c5=5
+#     E=2   
+#     invF1= np.sqrt(utils.reduced_g(params) * b)/(E * utils.vdif(params))
+#     alpha= np.sqrt(2) *(c3 + c4 * np.sin(phi) * invF1**2 ) / (1 + c5 * utils.proj_vel(params) / utils.vdif(params))
+#     return alpha
 
-# # GOVERNING EQUATIONS
-# # Calculation of dx, where x = ( m, um, vm, wm, cm, x, y, z, Tm, Sm ) 
-def model(x,params):
+# # # GOVERNING EQUATIONS
+# # # Calculation of dx, where x = ( m, um, vm, wm, cm, x, y, z, Tm, Sm ) 
+# def model(x,params):
        
-    rhoa=params['rhoa']
-    ua=params['ua']
-    va=params['va']
-    ca=params['ca']
-    Ta=params['Ta']
-    Sa=params['Sa']
-    g1 = params['g1'] 
+#     rhoa=params['rhoa']
+#     ua=params['ua']
+#     va=params['va']
+#     ca=params['ca']
+#     Ta=params['Ta']
+#     Sa=params['Sa']
+#     g1 = params['g1'] 
 
-    Qs=shear_entrain_yapa(params)
-    Qf=forced_entrain_yapa(params)
+#     Qs=shear_entrain_yapa(params)
+#     Qf=forced_entrain_yapa(params)
     
-    Qe = Qs + Qf  # total flux is the sum  
+#     Qe = Qs + Qf  # total flux is the sum  
      
-    xdot=np.array([rhoa * Qe , rhoa * Qe * ua ,  rhoa * Qe * va , x[0] * g1, rhoa * Qe * ca, \
-                   x[1]/x[0], x[2]/x[0], x[3]/x[0], rhoa* Qe * Ta, rhoa * Qe * Sa]) 
+#     xdot=np.array([rhoa * Qe , rhoa * Qe * ua ,  rhoa * Qe * va , x[0] * g1, rhoa * Qe * ca, \
+#                    x[1]/x[0], x[2]/x[0], x[3]/x[0], rhoa* Qe * Ta, rhoa * Qe * Sa]) 
 
-    return xdot
+#     return xdot
 
 
-# # RUNGE-KUTTA IV 
-def RK4(model,params,xb,dt):  
+# # # RUNGE-KUTTA IV 
+# def RK4(model,params,xb,dt):  
       
-    k1=dt*model(xb,params)
-    k2=dt*model(xb + k1/2, params)
-    k3=dt*model(xb + k2/2, params)
-    k4=dt*model(xb + k3, params)
-    dx=1/6 * (k1 + 2*k2 + 2*k3 + k4)
+#     k1=dt*model(xb,params)
+#     k2=dt*model(xb + k1/2, params)
+#     k3=dt*model(xb + k2/2, params)
+#     k4=dt*model(xb + k3, params)
+#     dx=1/6 * (k1 + 2*k2 + 2*k3 + k4)
     
-    return dx
+#     return dx
 
 # # Read ocean interpolated variables from cmems 
 
-df=pd.read_csv('ocean_profiles_input.csv')
+df=pd.read_csv('/Users/mhoxhaj/Scrivhox/A_DEV/GG/WORM/INPUT/ocean_profiles_input.csv')
 depth=df['depth']
 uo=df['uo']
 vo=df['vo']
@@ -178,13 +179,13 @@ for cyl in range (0,1): #range(0,tmax)
     xb = np.array([m, 0, 0, p['V0']*m, p['c0']*m, 0, 0, z0, p['Ta']*m, p['Sa']*m]) 
 
     Flag=True
-    p['g1']= reduced_g(p) if Flag==True else 0  
+    p['g1']= utils.reduced_g(p) if Flag==True else 0  
 
-    p['alpha']=entrain_coeff_yapa(p)  
+    p['alpha'] = utils.entrain_coeff_yapa(p)  
    
     if cyl==0 :
         # create output parameters file
-        paramdata=np.array([0., p['alpha'], proj_vel(p), p['V0'], p['rhoa'], shear_entrain_yapa(p), forced_entrain_yapa(p)])
+        paramdata=np.array([0., p['alpha'], utils.proj_vel(p), p['V0'], p['rhoa'], utils.shear_entrain_yapa(p), utils.forced_entrain_yapa(p)])
         s = f'''
         # Initial conditions
         # Mass: {m}
@@ -220,7 +221,7 @@ for cyl in range (0,1): #range(0,tmax)
             
             # Update variables
             
-            xn = xb + RK4(model,p,xb,dt)
+            xn = xb + utils.RK4(utils.model,p,xb,dt)
             m = xn[0]
             u,v,w = xn[1]/xn[0], xn[2]/xn[0], xn[3]/xn[0]
             c = xn[4]/xn[0]
@@ -250,8 +251,8 @@ for cyl in range (0,1): #range(0,tmax)
             p['theta']=np.arctan2(v,u)
             p['phib']=p['phi']
             p['phi']=np.arcsin(w/p['V0'])
-            p['g1']= reduced_g(p) if Flag==True else 0
-            p['alpha']=entrain_coeff_yapa(p)
+            p['g1']= utils.reduced_g(p) if Flag==True else 0
+            p['alpha']=utils.entrain_coeff_yapa(p)
             p['u']=u
             p['v']=v
             
@@ -266,7 +267,7 @@ for cyl in range (0,1): #range(0,tmax)
             
             
             if cyl == 0: 
-                paramdata1=np.array([(t+1)*dt/60, p['alpha'], proj_vel(p), p['V0'], p['rhoa'], shear_entrain_yapa(p), forced_entrain_yapa(p)])
+                paramdata1=np.array([(t+1)*dt/60, p['alpha'], utils.proj_vel(p), p['V0'], p['rhoa'], utils.shear_entrain_yapa(p), utils.forced_entrain_yapa(p)])
                 paramdata=np.vstack([paramdata,paramdata1])
                 
                 
@@ -278,11 +279,11 @@ for cyl in range (0,1): #range(0,tmax)
     # # PRINT OUTPUT
 
     datafile=pd.DataFrame(data=outdata, columns=['Time', 'Mass', 'U', 'W', 'C', 'Density', 'A_Density', 'Tkness', 'Radius', 'x', 'y', 'z' ])
-    datafile.to_csv(r'../OUTPUT/exp_'+fname+'/file'+str(cyl+1)+'.txt', index=False, header=True, float_format='%.8f', sep='\t', mode='w')
+    datafile.to_csv(r'/Users/mhoxhaj/Scrivhox/A_DEV/GG/WORM/OUTPUT/exp_'+fname+'/file'+str(cyl+1)+'.txt', index=False, header=True, float_format='%.8f', sep='\t', mode='w')
 
 
     paramfile=pd.DataFrame(data=paramdata, columns=['Time[min]', 'alpha', 'va proj', 'V0', 'rhoa', 'Qs', 'Qf'])
-    paramfile.to_csv(r'../OUTPUT/exp_'+fname+'/aparams.txt', index=False, header=True, float_format='%.8f', sep='\t', mode='w')
+    paramfile.to_csv(r'/Users/mhoxhaj/Scrivhox/A_DEV/GG/WORM/OUTPUT/exp_'+fname+'/aparams.txt', index=False, header=True, float_format='%.8f', sep='\t', mode='w')
 
 
      
